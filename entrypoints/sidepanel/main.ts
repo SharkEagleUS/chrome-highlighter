@@ -238,6 +238,12 @@ async function loadAllHighlights(): Promise<void> {
 
 // Delete highlight
 async function deleteHighlight(highlightId: string, url?: string): Promise<void> {
+  // Show confirmation dialog
+  const confirmed = confirm('Are you sure you want to delete this highlight?');
+  if (!confirmed) {
+    return; // User cancelled deletion
+  }
+  
   // Get URL if not provided
   if (!url) {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

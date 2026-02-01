@@ -36,7 +36,11 @@ export default defineContentScript({
       if (target.classList.contains(HIGHLIGHT_CLASS) && e.altKey) {
         const highlightId = target.dataset.highlightId;
         if (highlightId) {
-          removeHighlightById(highlightId);
+          // Show confirmation dialog before deletion
+          const confirmed = confirm('Are you sure you want to delete this highlight?');
+          if (confirmed) {
+            removeHighlightById(highlightId);
+          }
         }
       }
     });

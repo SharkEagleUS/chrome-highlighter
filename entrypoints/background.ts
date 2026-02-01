@@ -1,3 +1,7 @@
+import { storageService } from '../supabase/services/storage';
+import { authService } from '../supabase/services/auth';
+import { syncService } from '../supabase/services/sync';
+
 export default defineBackground(() => {
   // Create context menu on install
   chrome.runtime.onInstalled.addListener(() => {
@@ -6,6 +10,9 @@ export default defineBackground(() => {
       title: 'Save & Highlight Text',
       contexts: ['selection']
     });
+
+    // Initialize auth service and enable realtime sync if authenticated
+    initializeServices();
   });
 
   // Handle context menu clicks
@@ -28,103 +35,52 @@ export default defineBackground(() => {
   // Listen for messages from content script
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'getHighlights') {
-      // Forward to get highlights for URL
-      getHighlightsForUrl(message.url).then(sendResponse);
+      // Forward to get highlights for URL using unified storage service
+      storageService.getHighlightsForUrl(message.url).then(sendResponse);
       return true;
     } else if (message.action === 'saveHighlightData') {
-      // Save highlight data
-      saveHighlightData(message.url, message.highlight).then(sendResponse);
+      // Save highlight data using unified storage service (auto-syncs to cloud)
+      storageService.saveHighlight(message.url, message.highlight).then(sendResponse);
       return true;
     } else if (message.action === 'removeHighlightData') {
-      // Remove highlight data
-      removeHighlightData(message.url, message.highlightId).then(sendResponse);
+      // Remove highlight data using unified storage service (auto-syncs to cloud)
+      storageService.removeHighlight(message.url, message.highlightId).then(sendResponse);
       return true;
     } else if (message.action === 'getAllHighlights') {
-      getAllHighlightsData().then(sendResponse);
+      storageService.getAllHighlights().then(sendResponse);
+      return true;
+    } else if (message.action === 'performSync') {
+      // Manual sync trigger
+      storageService.performFullSync().then(sendResponse);
       return true;
     }
   });
-});
 
-// Storage functions
-type HighlightColor = 'yellow' | 'red' | 'green' | 'lightBlue' | 'lightPurple';
-
-interface HighlightPosition {
-  text: string;
-  xpath: string;
-  startOffset: number;
-  endOffset: number;
-  beforeContext: string;
-  afterContext: string;
-  id: string;
-  createdAt: number;
-  comment?: string;
-  tags?: string[];
-  color?: HighlightColor;
-}
-
-interface PageHighlights {
-  url: string;
-  highlights: HighlightPosition[];
-}
-
-const STORAGE_PREFIX = 'highlights_';
-
-function normalizeUrl(url: string): string {
-  try {
-    const parsed = new URL(url);
-    return `${parsed.origin}${parsed.pathname.replace(/\/$/, '')}${parsed.search}`;
-  } catch {
-    return url;
-  }
-}
-
-function getStorageKey(url: string): string {
-  return STORAGE_PREFIX + normalizeUrl(url);
-}
-
-async function getHighlightsForUrl(url: string): Promise<HighlightPosition[]> {
-  const key = getStorageKey(url);
-  const result = await chrome.storage.local.get(key);
-  const data = result[key] as PageHighlights | undefined;
-  return data?.highlights || [];
-}
-
-async function saveHighlightData(url: string, highlight: HighlightPosition): Promise<boolean> {
-  try {
-    const key = getStorageKey(url);
-    const highlights = await getHighlightsForUrl(url);
-    highlights.push(highlight);
-    await chrome.storage.local.set({ [key]: { url: normalizeUrl(url), highlights } });
-    return true;
-  } catch (e) {
-    console.error('Failed to save highlight:', e);
-    return false;
-  }
-}
-
-async function removeHighlightData(url: string, highlightId: string): Promise<boolean> {
-  try {
-    const key = getStorageKey(url);
-    const highlights = await getHighlightsForUrl(url);
-    const filtered = highlights.filter(h => h.id !== highlightId);
-    await chrome.storage.local.set({ [key]: { url: normalizeUrl(url), highlights: filtered } });
-    return true;
-  } catch (e) {
-    console.error('Failed to remove highlight:', e);
-    return false;
-  }
-}
-
-async function getAllHighlightsData(): Promise<PageHighlights[]> {
-  const result = await chrome.storage.local.get(null);
-  const pages: PageHighlights[] = [];
-  
-  for (const [key, value] of Object.entries(result)) {
-    if (key.startsWith(STORAGE_PREFIX)) {
-      pages.push(value as PageHighlights);
+  // Initialize services
+  async function initializeServices() {
+    try {
+      const isAuth = await authService.isAuthenticated();
+      if (isAuth) {
+        // Enable realtime sync for authenticated users
+        await syncService.enableRealtimeSync();
+        console.log('Realtime sync enabled');
+      }
+    } catch (error) {
+      console.error('Failed to initialize services:', error);
     }
   }
-  
-  return pages;
-}
+
+  // Listen for auth state changes to enable/disable realtime sync
+  authService.onAuthStateChange(async (state) => {
+    if (state.isAuthenticated) {
+      await syncService.enableRealtimeSync();
+      console.log('Realtime sync enabled');
+    } else {
+      await syncService.disableRealtimeSync();
+      console.log('Realtime sync disabled');
+    }
+  });
+
+  // Initialize services on startup
+  initializeServices();
+});

@@ -4,11 +4,21 @@ A Chrome extension (MV3) built with [WXT](https://wxt.dev/) that allows you to s
 
 ## Features
 
+### Core Features
 - **Right-click to Save**: Select text on any webpage, right-click, and choose "Save & Highlight Text"
 - **Persistent Highlights**: Highlights are saved to local storage and automatically restored on page revisit
 - **Position Tracking**: Correctly identifies the exact text you highlighted, even when the same text appears multiple times on the page
 - **Side Panel**: View and manage all your highlights in Chrome's side panel
 - **Easy Removal**: Alt+Click on a highlight or use the context menu to remove it
+
+### Cloud Sync Features (Optional)
+- **Cross-Device Sync**: Share highlights between Chrome browsers on different devices
+- **User Authentication**: Multi-user support with email/password authentication
+- **Cloud Backup**: Automatic backup of all highlights to Supabase
+- **Real-time Sync**: Changes sync automatically across devices
+- **Offline Support**: Works offline with local storage, syncs when online
+
+> **Note**: Cloud sync requires Supabase setup. See [supabase/README.md](supabase/README.md) for configuration instructions.
 
 ## How Position Tracking Works
 
@@ -58,15 +68,24 @@ npm run zip
 ```
 chrome-highlighter/
 ├── entrypoints/
-│   ├── background.ts        # Background service worker
+│   ├── background.ts        # Background service worker (with Supabase integration)
 │   ├── content.ts           # Content script (injected into pages)
 │   └── sidepanel/           # Side panel UI
-│       ├── index.html
-│       └── main.ts
+│       ├── index.html       # UI with Account tab for authentication
+│       ├── main.ts          # Main side panel logic
+│       └── auth-ui.ts       # Authentication UI handler
+├── supabase/                # Supabase cloud sync integration
+│   ├── client/              # Supabase client configuration
+│   ├── services/            # Auth, sync, and storage services
+│   ├── types/               # TypeScript database types
+│   ├── migrations/          # SQL migration files
+│   ├── index.ts             # Main export file
+│   └── README.md            # Supabase setup guide
 ├── utils/
 │   ├── storage.ts           # Storage utilities
-│   └── highlighter.ts       # DOM highlighting utilities
+│   └── modal.ts             # Modal utilities
 ├── wxt.config.ts            # WXT configuration
+├── .env.example             # Example environment configuration
 └── package.json
 ```
 
@@ -74,5 +93,18 @@ chrome-highlighter/
 
 - **Manifest Version**: 3 (MV3)
 - **Framework**: WXT (Vite-based extension framework)
-- **Storage**: Chrome Local Storage
+- **Storage**: Chrome Local Storage (with optional Supabase cloud sync)
+- **Backend**: Supabase (PostgreSQL + Auth + Realtime)
 - **Permissions**: `storage`, `contextMenus`, `sidePanel`
+
+## Cloud Sync Setup
+
+To enable cloud sync features:
+
+1. Follow the setup guide in [supabase/README.md](supabase/README.md)
+2. Create a Supabase project and run the database migration
+3. Configure your credentials in `.env` (copy from `.env.example`)
+4. Build and reload the extension
+5. Use the "Account" tab in the side panel to sign up/sign in
+
+The extension works fully offline without Supabase configuration. Cloud sync is an optional enhancement.

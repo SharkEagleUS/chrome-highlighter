@@ -85,6 +85,9 @@ export class AuthService {
       const { data, error } = await supabase.auth.signUp({
         email: credentials.email,
         password: credentials.password,
+        options: {
+          emailRedirectTo: 'https://yttpypsszygaelvdbbiu.supabase.co/auth/v1/verify'
+        }
       });
 
       if (error) {

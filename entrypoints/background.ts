@@ -55,6 +55,8 @@ export default defineBackground(() => {
 });
 
 // Storage functions
+type HighlightColor = 'yellow' | 'red' | 'green' | 'lightBlue' | 'lightPurple';
+
 interface HighlightPosition {
   text: string;
   xpath: string;
@@ -66,6 +68,7 @@ interface HighlightPosition {
   createdAt: number;
   comment?: string;
   tags?: string[];
+  color?: HighlightColor;
 }
 
 interface PageHighlights {

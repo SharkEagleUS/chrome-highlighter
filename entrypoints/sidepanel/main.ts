@@ -1,3 +1,5 @@
+type HighlightColor = 'yellow' | 'red' | 'green' | 'lightBlue' | 'lightPurple';
+
 interface HighlightPosition {
   text: string;
   xpath: string;
@@ -9,6 +11,7 @@ interface HighlightPosition {
   createdAt: number;
   comment?: string;
   tags?: string[];
+  color?: HighlightColor;
 }
 
 interface PageHighlights {
@@ -57,7 +60,8 @@ function createHighlightElement(highlight: HighlightPosition, url?: string): HTM
   item.dataset.highlightId = highlight.id;
 
   const textDiv = document.createElement('div');
-  textDiv.className = 'highlight-text';
+  const color = highlight.color || 'yellow';
+  textDiv.className = `highlight-text color-${color}`;
   textDiv.textContent = truncateText(highlight.text, 150);
 
   // Add comment if exists

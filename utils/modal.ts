@@ -1,4 +1,5 @@
 // Modal component for adding comments and tags to highlights
+import type { HighlightColor } from './storage';
 
 const MODAL_ID = 'text-highlighter-modal';
 const MODAL_OVERLAY_ID = 'text-highlighter-modal-overlay';
@@ -6,6 +7,7 @@ const MODAL_OVERLAY_ID = 'text-highlighter-modal-overlay';
 export interface HighlightMetadata {
   comment: string;
   tags: string[];
+  color: HighlightColor;
 }
 
 export function injectModalStyles(): void {
@@ -82,16 +84,15 @@ export function injectModalStyles(): void {
     }
 
     .${MODAL_ID}-text-display {
-      background-color: #fff9c4;
       padding: 12px;
       border-radius: 4px;
       margin-bottom: 20px;
-      border-left: 4px solid #ffc107;
       font-size: 14px;
       line-height: 1.6;
       color: #333;
       max-height: 150px;
       overflow-y: auto;
+      transition: background-color 0.3s ease;
     }
 
     .${MODAL_ID}-form-group {
@@ -175,6 +176,63 @@ export function injectModalStyles(): void {
       margin-top: 6px;
     }
 
+    .${MODAL_ID}-color-picker {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .${MODAL_ID}-color-option {
+      width: 32px;
+      height: 32px;
+      border: 2px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .${MODAL_ID}-color-option:hover {
+      transform: scale(1.15);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .${MODAL_ID}-color-option.selected {
+      border-color: #333;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .${MODAL_ID}-color-option.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #333;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .${MODAL_ID}-color-yellow {
+      background-color: #ffeb3b;
+    }
+
+    .${MODAL_ID}-color-red {
+      background-color: #ff8a80;
+    }
+
+    .${MODAL_ID}-color-green {
+      background-color: #b9f6ca;
+    }
+
+    .${MODAL_ID}-color-lightBlue {
+      background-color: #80d8ff;
+    }
+
+    .${MODAL_ID}-color-lightPurple {
+      background-color: #ea80fc;
+    }
+
     .${MODAL_ID}-footer {
       padding: 16px 20px;
       border-top: 1px solid #e0e0e0;
@@ -247,7 +305,18 @@ export function showHighlightModal(
       <button class="${MODAL_ID}-close" type="button" aria-label="Close">&times;</button>
     </div>
     <div class="${MODAL_ID}-body">
-      <div class="${MODAL_ID}-text-display">${escapeHtml(selectedText)}</div>
+      <div id="text-display" class="${MODAL_ID}-text-display" style="background-color: #ffeb3b;">${escapeHtml(selectedText)}</div>
+
+      <div class="${MODAL_ID}-form-group">
+        <label class="${MODAL_ID}-label">Highlight Color</label>
+        <div class="${MODAL_ID}-color-picker">
+          <div class="${MODAL_ID}-color-option ${MODAL_ID}-color-yellow selected" data-color="yellow" title="Yellow"></div>
+          <div class="${MODAL_ID}-color-option ${MODAL_ID}-color-red" data-color="red" title="Red"></div>
+          <div class="${MODAL_ID}-color-option ${MODAL_ID}-color-green" data-color="green" title="Green"></div>
+          <div class="${MODAL_ID}-color-option ${MODAL_ID}-color-lightBlue" data-color="lightBlue" title="Light Blue"></div>
+          <div class="${MODAL_ID}-color-option ${MODAL_ID}-color-lightPurple" data-color="lightPurple" title="Light Purple"></div>
+        </div>
+      </div>
 
       <div class="${MODAL_ID}-form-group">
         <label class="${MODAL_ID}-label" for="highlight-comment">Comment (optional)</label>
@@ -281,6 +350,7 @@ export function showHighlightModal(
 
   // State
   const tags: string[] = [];
+  let selectedColor: HighlightColor = 'yellow';
 
   // Get elements
   const closeBtn = modal.querySelector(`.${MODAL_ID}-close`) as HTMLButtonElement;
@@ -289,6 +359,8 @@ export function showHighlightModal(
   const commentTextarea = modal.querySelector('#highlight-comment') as HTMLTextAreaElement;
   const tagsInput = modal.querySelector('#highlight-tags') as HTMLInputElement;
   const tagsContainer = modal.querySelector('#tags-container') as HTMLDivElement;
+  const colorOptions = modal.querySelectorAll(`.${MODAL_ID}-color-option`);
+  const textDisplay = modal.querySelector('#text-display') as HTMLDivElement;
 
   // Helper functions
   function renderTags(): void {
@@ -324,7 +396,7 @@ export function showHighlightModal(
 
   function handleSave(): void {
     const comment = commentTextarea.value.trim();
-    onSave({ comment, tags });
+    onSave({ comment, tags, color: selectedColor });
     removeModal();
   }
 
@@ -337,6 +409,29 @@ export function showHighlightModal(
   closeBtn.addEventListener('click', handleCancel);
   cancelBtn.addEventListener('click', handleCancel);
   saveBtn.addEventListener('click', handleSave);
+
+  // Color mapping for background colors
+  const colorMap: Record<HighlightColor, string> = {
+    yellow: '#ffeb3b',
+    red: '#ff8a80',
+    green: '#b9f6ca',
+    lightBlue: '#80d8ff',
+    lightPurple: '#ea80fc'
+  };
+
+  // Color picker handling
+  colorOptions.forEach((option) => {
+    option.addEventListener('click', () => {
+      // Remove selected class from all options
+      colorOptions.forEach((opt) => opt.classList.remove('selected'));
+      // Add selected class to clicked option
+      option.classList.add('selected');
+      // Update selected color
+      selectedColor = (option as HTMLElement).dataset.color as HighlightColor;
+      // Update text display background color
+      textDisplay.style.backgroundColor = colorMap[selectedColor];
+    });
+  });
 
   // Tags input handling
   tagsInput.addEventListener('keydown', (e) => {

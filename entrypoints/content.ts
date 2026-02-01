@@ -52,18 +52,51 @@ function injectHighlightStyles(): void {
   style.id = 'text-highlighter-styles';
   style.textContent = `
     .${HIGHLIGHT_CLASS} {
-      background-color: #ffeb3b !important;
       border-radius: 2px;
       padding: 0 2px;
       cursor: pointer;
       transition: background-color 0.2s;
     }
-    .${HIGHLIGHT_CLASS}:hover {
+
+    .${HIGHLIGHT_CLASS}.color-yellow {
+      background-color: #ffeb3b !important;
+    }
+    .${HIGHLIGHT_CLASS}.color-yellow:hover {
       background-color: #ffc107 !important;
+    }
+
+    .${HIGHLIGHT_CLASS}.color-red {
+      background-color: #ff8a80 !important;
+    }
+    .${HIGHLIGHT_CLASS}.color-red:hover {
+      background-color: #ff5252 !important;
+    }
+
+    .${HIGHLIGHT_CLASS}.color-green {
+      background-color: #b9f6ca !important;
+    }
+    .${HIGHLIGHT_CLASS}.color-green:hover {
+      background-color: #69f0ae !important;
+    }
+
+    .${HIGHLIGHT_CLASS}.color-lightBlue {
+      background-color: #80d8ff !important;
+    }
+    .${HIGHLIGHT_CLASS}.color-lightBlue:hover {
+      background-color: #40c4ff !important;
+    }
+
+    .${HIGHLIGHT_CLASS}.color-lightPurple {
+      background-color: #ea80fc !important;
+    }
+    .${HIGHLIGHT_CLASS}.color-lightPurple:hover {
+      background-color: #e040fb !important;
     }
   `;
   document.head.appendChild(style);
 }
+
+type HighlightColor = 'yellow' | 'red' | 'green' | 'lightBlue' | 'lightPurple';
 
 interface HighlightPosition {
   text: string;
@@ -76,6 +109,7 @@ interface HighlightPosition {
   createdAt: number;
   comment?: string;
   tags?: string[];
+  color?: HighlightColor;
 }
 
 async function loadAndApplyHighlights(): Promise<void> {
@@ -132,6 +166,7 @@ async function handleSaveHighlight(): Promise<void> {
       // Add metadata to highlight data
       highlightData.comment = metadata.comment;
       highlightData.tags = metadata.tags;
+      highlightData.color = metadata.color;
 
       // Restore selection and highlight in the DOM
       const newSelection = window.getSelection();
@@ -139,7 +174,7 @@ async function handleSaveHighlight(): Promise<void> {
         newSelection.removeAllRanges();
         newSelection.addRange(range);
 
-        const success = highlightSelection(newSelection, highlightData.id);
+        const success = highlightSelection(newSelection, highlightData.id, metadata.color);
         if (success) {
           // Save to storage
           chrome.runtime.sendMessage({
@@ -361,7 +396,7 @@ function applyHighlight(position: HighlightPosition): boolean {
     return applyHighlightByContext(container, position);
   }
 
-  return wrapRangeWithHighlight(range, position.id);
+  return wrapRangeWithHighlight(range, position.id, position.color || 'yellow');
 }
 
 // Fallback: find text by surrounding context
@@ -439,17 +474,17 @@ function applyHighlightByContext(container: Element, position: HighlightPosition
     const range = document.createRange();
     range.setStart(startNode, startNodeOffset);
     range.setEnd(endNode, endNodeOffset);
-    return wrapRangeWithHighlight(range, position.id);
+    return wrapRangeWithHighlight(range, position.id, position.color || 'yellow');
   } catch {
     return false;
   }
 }
 
 // Wrap a range with highlight markup
-function wrapRangeWithHighlight(range: Range, highlightId: string): boolean {
+function wrapRangeWithHighlight(range: Range, highlightId: string, color: HighlightColor = 'yellow'): boolean {
   try {
     const mark = document.createElement('mark');
-    mark.className = HIGHLIGHT_CLASS;
+    mark.className = `${HIGHLIGHT_CLASS} color-${color}`;
     mark.dataset.highlightId = highlightId;
 
     range.surroundContents(mark);
@@ -459,7 +494,7 @@ function wrapRangeWithHighlight(range: Range, highlightId: string): boolean {
     try {
       const fragment = range.extractContents();
       const mark = document.createElement('mark');
-      mark.className = HIGHLIGHT_CLASS;
+      mark.className = `${HIGHLIGHT_CLASS} color-${color}`;
       mark.dataset.highlightId = highlightId;
       mark.appendChild(fragment);
       range.insertNode(mark);
@@ -471,9 +506,9 @@ function wrapRangeWithHighlight(range: Range, highlightId: string): boolean {
 }
 
 // Highlight selection immediately
-function highlightSelection(selection: Selection, highlightId: string): boolean {
+function highlightSelection(selection: Selection, highlightId: string, color: HighlightColor = 'yellow'): boolean {
   if (!selection.rangeCount || selection.isCollapsed) return false;
 
   const range = selection.getRangeAt(0);
-  return wrapRangeWithHighlight(range, highlightId);
+  return wrapRangeWithHighlight(range, highlightId, color);
 }

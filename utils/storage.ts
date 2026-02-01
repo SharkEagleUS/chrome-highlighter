@@ -1,4 +1,6 @@
 // Types for highlight storage
+export type HighlightColor = 'yellow' | 'red' | 'green' | 'lightBlue' | 'lightPurple';
+
 export interface HighlightPosition {
   text: string;
   // XPath to the container element
@@ -17,6 +19,8 @@ export interface HighlightPosition {
   comment?: string;
   // Optional tags
   tags?: string[];
+  // Highlight color (default: yellow)
+  color?: HighlightColor;
 }
 
 export interface PageHighlights {

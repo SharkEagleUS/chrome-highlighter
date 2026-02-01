@@ -7,6 +7,8 @@ interface HighlightPosition {
   afterContext: string;
   id: string;
   createdAt: number;
+  comment?: string;
+  tags?: string[];
 }
 
 interface PageHighlights {
@@ -53,28 +55,35 @@ function createHighlightElement(highlight: HighlightPosition, url?: string): HTM
   const item = document.createElement('div');
   item.className = 'highlight-item';
   item.dataset.highlightId = highlight.id;
-  
+
   const textDiv = document.createElement('div');
   textDiv.className = 'highlight-text';
   textDiv.textContent = truncateText(highlight.text, 150);
-  
-  const metaDiv = document.createElement('div');
-  metaDiv.className = 'highlight-meta';
-  
-  const dateSpan = document.createElement('span');
-  dateSpan.className = 'highlight-date';
-  dateSpan.textContent = formatDate(highlight.createdAt);
-  
-  const deleteBtn = document.createElement('button');
-  deleteBtn.className = 'btn-delete';
-  deleteBtn.textContent = 'Delete';
-  deleteBtn.addEventListener('click', () => deleteHighlight(highlight.id, url));
-  
-  metaDiv.appendChild(dateSpan);
-  metaDiv.appendChild(deleteBtn);
-  
-  item.appendChild(textDiv);
-  
+
+  // Add comment if exists
+  if (highlight.comment) {
+    const commentDiv = document.createElement('div');
+    commentDiv.className = 'highlight-comment';
+    commentDiv.textContent = highlight.comment;
+    item.appendChild(textDiv);
+    item.appendChild(commentDiv);
+  } else {
+    item.appendChild(textDiv);
+  }
+
+  // Add tags if exist
+  if (highlight.tags && highlight.tags.length > 0) {
+    const tagsDiv = document.createElement('div');
+    tagsDiv.className = 'highlight-tags';
+    highlight.tags.forEach(tag => {
+      const tagSpan = document.createElement('span');
+      tagSpan.className = 'tag';
+      tagSpan.textContent = tag;
+      tagsDiv.appendChild(tagSpan);
+    });
+    item.appendChild(tagsDiv);
+  }
+
   if (url) {
     const urlLink = document.createElement('a');
     urlLink.className = 'highlight-url';
@@ -87,9 +96,24 @@ function createHighlightElement(highlight: HighlightPosition, url?: string): HTM
     });
     item.appendChild(urlLink);
   }
-  
+
+  const metaDiv = document.createElement('div');
+  metaDiv.className = 'highlight-meta';
+
+  const dateSpan = document.createElement('span');
+  dateSpan.className = 'highlight-date';
+  dateSpan.textContent = formatDate(highlight.createdAt);
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'btn-delete';
+  deleteBtn.textContent = 'Delete';
+  deleteBtn.addEventListener('click', () => deleteHighlight(highlight.id, url));
+
+  metaDiv.appendChild(dateSpan);
+  metaDiv.appendChild(deleteBtn);
+
   item.appendChild(metaDiv);
-  
+
   return item;
 }
 

@@ -13,6 +13,10 @@ export interface HighlightPosition {
   id: string;
   // Timestamp
   createdAt: number;
+  // Optional comment
+  comment?: string;
+  // Optional tags
+  tags?: string[];
 }
 
 export interface PageHighlights {

@@ -64,6 +64,8 @@ interface HighlightPosition {
   afterContext: string;
   id: string;
   createdAt: number;
+  comment?: string;
+  tags?: string[];
 }
 
 interface PageHighlights {

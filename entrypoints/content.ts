@@ -1,3 +1,5 @@
+import { showHighlightModal, removeModal } from '@/utils/modal';
+
 export default defineContentScript({
   matches: ['<all_urls>'],
   runAt: 'document_idle',
@@ -64,6 +66,8 @@ interface HighlightPosition {
   afterContext: string;
   id: string;
   createdAt: number;
+  comment?: string;
+  tags?: string[];
 }
 
 async function loadAndApplyHighlights(): Promise<void> {
@@ -87,22 +91,50 @@ async function handleSaveHighlight(): Promise<void> {
     return;
   }
 
+  const selectedText = selection.toString().trim();
   const highlightData = createHighlightFromSelection(selection);
   if (!highlightData) return;
 
-  // First highlight in the DOM
-  const success = highlightSelection(selection, highlightData.id);
-  if (!success) return;
+  // Store the selection range before clearing
+  const range = selection.getRangeAt(0).cloneRange();
 
-  // Then save to storage
-  chrome.runtime.sendMessage({
-    action: 'saveHighlightData',
-    url: window.location.href,
-    highlight: highlightData
-  });
+  // Show modal to get comment and tags
+  showHighlightModal(
+    selectedText,
+    (metadata) => {
+      // User clicked Save
+      // Add metadata to highlight data
+      highlightData.comment = metadata.comment;
+      highlightData.tags = metadata.tags;
 
-  // Clear selection
-  selection.removeAllRanges();
+      // Restore selection and highlight in the DOM
+      const newSelection = window.getSelection();
+      if (newSelection) {
+        newSelection.removeAllRanges();
+        newSelection.addRange(range);
+
+        const success = highlightSelection(newSelection, highlightData.id);
+        if (success) {
+          // Save to storage
+          chrome.runtime.sendMessage({
+            action: 'saveHighlightData',
+            url: window.location.href,
+            highlight: highlightData
+          });
+        }
+
+        // Clear selection
+        newSelection.removeAllRanges();
+      }
+    },
+    () => {
+      // User clicked Cancel - just clear the selection
+      const newSelection = window.getSelection();
+      if (newSelection) {
+        newSelection.removeAllRanges();
+      }
+    }
+  );
 }
 
 function handleRemoveHighlight(): void {

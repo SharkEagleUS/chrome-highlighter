@@ -25,6 +25,8 @@ export default defineContentScript({
       } else if (message.action === 'refreshHighlights') {
         clearAllHighlights();
         loadAndApplyHighlights();
+      } else if (message.action === 'scrollToHighlight') {
+        scrollToHighlight(message.highlightId);
       }
     });
 
@@ -194,6 +196,30 @@ async function handleSaveHighlight(): Promise<void> {
       }
     }
   );
+}
+
+function scrollToHighlight(highlightId: string): void {
+  const mark = document.querySelector(`[data-highlight-id="${highlightId}"]`);
+  if (mark) {
+    // Scroll the element into view with smooth behavior
+    mark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Add a temporary flash effect to draw attention
+    const originalBackground = (mark as HTMLElement).style.backgroundColor;
+    const element = mark as HTMLElement;
+
+    // Flash animation
+    element.style.transition = 'all 0.3s ease';
+    element.style.transform = 'scale(1.05)';
+    element.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.3)';
+
+    setTimeout(() => {
+      element.style.transform = 'scale(1)';
+      element.style.boxShadow = 'none';
+    }, 600);
+  } else {
+    console.warn('Highlight not found:', highlightId);
+  }
 }
 
 async function removeHighlightById(highlightId: string): Promise<void> {

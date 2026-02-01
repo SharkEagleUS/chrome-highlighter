@@ -63,6 +63,20 @@ function createHighlightElement(highlight: HighlightPosition, url?: string): HTM
   const color = highlight.color || 'yellow';
   textDiv.className = `highlight-text color-${color}`;
   textDiv.textContent = truncateText(highlight.text, 150);
+  textDiv.style.cursor = 'pointer';
+  textDiv.title = 'Click to navigate to this highlight';
+
+  // Add click handler to navigate to highlight
+  textDiv.addEventListener('click', async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      // Send message to content script to scroll to highlight
+      chrome.tabs.sendMessage(tab.id, {
+        action: 'scrollToHighlight',
+        highlightId: highlight.id
+      });
+    }
+  });
 
   // Add comment if exists
   if (highlight.comment) {

@@ -3,7 +3,9 @@
     "allow": [
       "Bash(pnpm build:*)",
       "Bash(pnpm dev)",
-      "Bash(claude mcp:*)"
+      "Bash(claude mcp:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

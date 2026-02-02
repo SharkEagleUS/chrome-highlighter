@@ -1,4 +1,4 @@
-# Text Highlighter Chrome Extension
+# Shark Eagle Highlighter
 
 A Chrome extension (MV3) built with [WXT](https://wxt.dev/) that allows you to save and highlight text selections. Highlights persist and are automatically restored when you revisit the page.
 

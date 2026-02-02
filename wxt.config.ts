@@ -4,7 +4,7 @@ export default defineConfig({
   extensionApi: 'chrome',
   modules: [],
   manifest: {
-    name: 'Text Highlighter',
+    name: 'Shark Eagle Highlighter',
     description: 'Save and highlight text selections across page visits',
     version: '1.0.0',
     permissions: ['storage', 'contextMenus', 'sidePanel'],
@@ -18,7 +18,7 @@ export default defineConfig({
       default_path: 'sidepanel.html'
     },
     action: {
-      default_title: 'Open Highlighter Panel',
+      default_title: 'Open Shark Eagle Panel',
       default_icon: {
         16: 'icon/16.png',
         32: 'icon/32.png',

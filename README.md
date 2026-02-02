@@ -34,21 +34,21 @@ The extension uses multiple strategies to accurately identify highlighted text:
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Start development mode (with hot reload)
-npm run dev
+pnpm dev
 
 # Build for production
-npm run build
+pnpm build
 
 # Create zip for distribution
-npm run zip
+pnpm zip
 ```
 
 ### Load in Chrome
 
-1. Run `npm run build`
+1. Run `pnpm build`
 2. Open Chrome and go to `chrome://extensions/`
 3. Enable "Developer mode" (top right)
 4. Click "Load unpacked"

@@ -1,24 +1,9 @@
 import { authService } from './auth';
 import { syncService, type LocalHighlight } from './sync';
+import type { HighlightPosition, PageHighlights } from '../../utils/types';
 
-export interface HighlightPosition {
-  text: string;
-  xpath: string;
-  startOffset: number;
-  endOffset: number;
-  beforeContext: string;
-  afterContext: string;
-  id: string;
-  createdAt: number;
-  comment?: string;
-  tags?: string[];
-  color?: 'yellow' | 'red' | 'green' | 'lightBlue' | 'lightPurple';
-}
-
-export interface PageHighlights {
-  url: string;
-  highlights: HighlightPosition[];
-}
+// Re-export types for backward compatibility
+export type { HighlightPosition, PageHighlights } from '../../utils/types';
 
 const STORAGE_PREFIX = 'highlights_';
 

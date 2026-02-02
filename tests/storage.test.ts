@@ -8,8 +8,8 @@ import {
   addHighlight,
   removeHighlight,
   getAllHighlights,
-  type HighlightPosition,
 } from '../utils/storage';
+import type { HighlightPosition } from '../utils/types';
 
 describe('storage utils', () => {
   beforeEach(() => {

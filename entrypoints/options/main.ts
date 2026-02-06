@@ -329,17 +329,23 @@ function handleAction(event: Event): void {
   const id = target.dataset.id;
   const url = target.dataset.url;
 
-  if (!action || !id || !url) return;
+  if (!action) return;
 
   switch (action) {
     case 'navigate':
-      chrome.tabs.create({ url });
+      if (url) {
+        chrome.tabs.create({ url });
+      }
       break;
     case 'edit':
-      openEditModal(id, url);
+      if (id && url) {
+        openEditModal(id, url);
+      }
       break;
     case 'delete':
-      deleteHighlight(id, url);
+      if (id && url) {
+        deleteHighlight(id, url);
+      }
       break;
   }
 }

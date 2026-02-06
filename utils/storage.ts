@@ -1,12 +1,4 @@
 import type { HighlightPosition, PageHighlights } from './types';
-import { getXPath, getElementByXPath } from './xpath';
-
-// Re-export types for backward compatibility
-export type { HighlightColor } from './types';
-export type { HighlightPosition, PageHighlights } from './types';
-
-// Re-export XPath utilities for backward compatibility
-export { getXPath, getElementByXPath } from './xpath';
 
 // Generate a unique ID
 export function generateId(): string {

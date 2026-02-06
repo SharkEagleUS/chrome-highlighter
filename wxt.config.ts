@@ -38,7 +38,6 @@ export default defineConfig({
     }
   },
   webExt: {
-    disabled: true,
     startUrls: ['https://hzhou.me/2020/12/24/SaltyNote-Server-Setup/']
   }
 });

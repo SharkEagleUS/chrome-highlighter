@@ -378,3 +378,11 @@ window.addEventListener('highlights-updated', () => {
     loadCurrentPageHighlights();
   }
 });
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.action === 'tabActivated') {
+    if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'current') {
+      loadCurrentPageHighlights();
+    }
+  }
+});

@@ -87,4 +87,15 @@ export default defineBackground(() => {
 
   // Initialize services on startup
   initializeServices();
+
+  chrome.tabs.onActivated.addListener(async (activeInfo) => {
+    try {
+      chrome.runtime.sendMessage({
+        action: 'tabActivated',
+        tabId: activeInfo.tabId
+      });
+    } catch (error) {
+      console.debug('Could not notify sidepanel of tab change:', error);
+    }
+  });
 });

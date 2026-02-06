@@ -8,6 +8,11 @@ tabs.forEach(tab => {
   tab.addEventListener('click', () => {
     const targetTab = (tab as HTMLElement).dataset.tab;
     
+    if (targetTab === 'all') {
+      chrome.runtime.openOptionsPage();
+      return;
+    }
+    
     tabs.forEach(t => t.classList.remove('active'));
     panels.forEach(p => p.classList.remove('active'));
     
